@@ -10,11 +10,11 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { NavItems as navitems } from '@/constants/constants';
+import { NavItems as navitems } from '@/config/constants';
 import { LogOutIcon, MenuIcon, SettingsIcon, UserIcon, XIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const Navbar = () => {
     const pathname = usePathname();
@@ -24,6 +24,8 @@ const Navbar = () => {
     const [menuOpen, setMenuOpen] = useState(false);
     const navRef = useRef<HTMLDivElement>(null);
     const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+    // refs for icon components which expose startAnimation/stopAnimation via useImperativeHandle
+    const iconRefs = useRef<Array<{ startAnimation?: () => void; stopAnimation?: () => void } | null>>([]);
 
     useEffect(() => {
         const active = navitems.findIndex(item => item.href === pathname);
@@ -48,16 +50,16 @@ const Navbar = () => {
         <header className='sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border'>
             <div className='flex justify-between items-center px-4 py-2 md:px-6'>
                 {/* Logo */}
-                <Link href="/" className='inline-flex items-center gap-1 group cursor-pointer'>
+                <div className='inline-flex items-center gap-1 group cursor-pointer'>
                     <div className='font-extrabold text-2xl tracking-tight select-none'>
                         Campus<span className="text-primary">phere</span>
                     </div>
-                </Link>
+                </div>
 
                 {/* Desktop Navigation */}
                 <div
                     ref={navRef}
-                    className="relative hidden md:flex border divide-x rounded-lg border-border overflow-hidden"
+                    className="relative hidden md:flex border divide-x rounded-md border-border overflow-hidden"
                 >
                     {/* Animated Background Indicator */}
                     <div
@@ -79,20 +81,29 @@ const Navbar = () => {
                                 key={item.name}
                                 href={item.href}
                                 ref={(el) => { itemRefs.current[index] = el }}
-                                onMouseEnter={() => setHoveredIndex(index)}
-                                onMouseLeave={() => setHoveredIndex(null)}
+                                onMouseEnter={() => {
+                                    setHoveredIndex(index);
+                                    // trigger icon animation if icon exposes controls
+                                    iconRefs.current[index]?.startAnimation?.();
+                                }}
+                                onMouseLeave={() => {
+                                    setHoveredIndex(null);
+                                    iconRefs.current[index]?.stopAnimation?.();
+                                }}
                                 className={`
                                     relative flex items-center justify-center w-32 py-2 text-md transition-all duration-300 ease-out
                                     ${isActive
-                                        ? 'font-bold text-foreground'
-                                        : 'font-semibold text-muted-foreground'}
+                                        ? 'font-semibold text-foreground'
+                                        : 'text-muted-foreground'}
                                     ${isHovered && !isActive ? 'font-bold text-foreground' : ''}
                                 `}
                             >
                                 {Icon ? (
+                                    // attach ref to the icon component so we can start/stop its motion from the parent
                                     <Icon
+                                        ref={(el: any) => (iconRefs.current[index] = el)}
                                         size={16}
-                                        className={`mr-2 transition-all duration-300 ${isActive || isHovered ? 'scale-110' : 'scale-100'}`}
+                                        className={`mr-2 transition-all font-light duration-300 ${isActive || isHovered ? 'scale-110 font-semibold' : 'scale-100'}`}
                                     />
                                 ) : null}
                                 <span className="relative z-10">{item.name}</span>
@@ -173,7 +184,7 @@ const Navbar = () => {
                                 <UserIcon size={16} className="mr-2" /> Profile
                             </Link>
                             <Link href="/home/settings" className="flex items-center px-3 py-2 text-muted-foreground hover:text-foreground">
-                                <SettingsIcon size={16} className='mr-2'/> Settings
+                                <SettingsIcon size={16} className='mr-2' /> Settings
                             </Link>
                             <button
                                 onClick={() => console.log("Logging out...")}

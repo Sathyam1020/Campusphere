@@ -1,7 +1,8 @@
+import RouteGuard from '@/components/auth/RouteGuard';
+import { ThemeProvider } from "@/components/theme-provider";
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -30,6 +31,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <RouteGuard />
           {children}
         </ThemeProvider>
       </body>

@@ -3,9 +3,9 @@ import React from 'react'
 const page = () => {
   return (
     <div>
-      page 
+      Coming Soon: Showcase your projects!
     </div>
   )
 }
 
-export default page; 
+export default page
