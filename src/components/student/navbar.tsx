@@ -47,13 +47,11 @@ const Navbar = () => {
     }, [hoveredIndex, activeIndex]);
 
     return (
-        <header className='sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border'>
+        <header className='sticky top-0 z-50 bg-[#0e172a] backdrop-blur-sm border-b border-border'>
             <div className='flex justify-between items-center px-4 py-2 md:px-6'>
                 {/* Logo */}
-                <div className='inline-flex items-center gap-1 group cursor-pointer'>
-                    <div className='font-extrabold text-2xl tracking-tight select-none'>
-                        Campus<span className="text-primary">phere</span>
-                    </div>
+                <div className='cursor-pointer font-bold text-2xl text-sidebar-accent-foreground'>
+                    Campusphere
                 </div>
 
                 {/* Desktop Navigation */}

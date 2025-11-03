@@ -1,13 +1,17 @@
-import Navbar from "@/components/student/navbar"
+import DashboardSidebar from "@/components/student/Sidebar/DashboardSidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 
 export default function Layout({ children }: { children: React.ReactNode }) {
     return (
         <main>
-            <Navbar />
-            <div className="max-w-7xl mx-auto">
-                {children}
-            </div>
+            <SidebarProvider>
+                <DashboardSidebar />
+                <div className="w-full">
+                    <SidebarTrigger />
+                    {children}
+                </div>
+            </SidebarProvider>
         </main>
     )
 }
