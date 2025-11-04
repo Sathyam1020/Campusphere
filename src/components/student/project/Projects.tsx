@@ -1,4 +1,4 @@
-import FindProjects from "@/components/student/project/FindProjects"
+import FindProjects from "@/components/student/project/FindProjects/FindProjects"
 import YourProjects from "@/components/student/project/YourProjects/YourProjects"
 import {
   Tabs,

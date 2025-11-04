@@ -1,31 +1,21 @@
+"use client"
+
 import { GeneratedAvatar } from '@/components/GeneratedAvatar';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { useIsMobile } from '@/hooks/use-mobile';
-// import { authClient } from '@/lib/auth-client';
+import { useLogout } from '@/hooks/use-logout';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
-import { ChevronDownIcon, CreditCardIcon, LogOutIcon } from 'lucide-react';
+import { ChevronDownIcon, LogOutIcon, Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 
 const DashboardUserButton = () => {
     const router = useRouter();
-    // const { data, isPending } = authClient.useSession();
-    const isMobile = useIsMobile();;
-
-    // const onLogout = async () => {
-    //     authClient.signOut({
-    //         fetchOptions: {
-    //             onSuccess: () => {
-    //                 router.push('/sign-in')
-    //             }
-    //         }
-    //     });
-    // }
-
-    // if (isPending || !data?.user) {
-    //     return null;
-    // }
+    const { theme, setTheme } = useTheme();
+    const { logout, isLoggingOut } = useLogout();
+    const isMobile = useIsMobile();
 
     const data = {
         user: {
@@ -73,22 +63,26 @@ const DashboardUserButton = () => {
                     <DrawerFooter className="flex gap-2 border-t border-zinc-200 dark:border-zinc-700 mt-4 pt-4">
                         <Button
                             variant="ghost"
-                            // onClick={() => { authClient.customer.portal() }}
+                            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                             className="flex items-center gap-2 px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 
                             hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-200"
                         >
-                            <CreditCardIcon className="size-4 text-zinc-500 dark:text-zinc-400" />
-                            Billing
+                            {theme === 'dark' ? (
+                                <Sun className="size-4 text-zinc-500 dark:text-zinc-400" />
+                            ) : (
+                                <Moon className="size-4 text-zinc-500 dark:text-zinc-400" />
+                            )}
+                            Theme
                         </Button>
-
                         <Button
                             variant="ghost"
-                            // onClick={onLogout}
+                            onClick={logout}
+                            disabled={isLoggingOut}
                             className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 
                             hover:bg-red-50 dark:hover:bg-red-900 transition-colors duration-200"
                         >
                             <LogOutIcon className="size-4 text-red-500" />
-                            Logout
+                            {isLoggingOut ? 'Logging out...' : 'Logout'}
                         </Button>
                     </DrawerFooter>
                 </DrawerContent>
@@ -144,28 +138,33 @@ const DashboardUserButton = () => {
 
                     <DropdownMenuSeparator className="my-2 h-px bg-zinc-200 dark:bg-zinc-700" />
 
-                    {/* Billing Item */}
+                    {/* Theme Item */}
                     <DropdownMenuItem
-                        // onClick={() => { authClient.customer.portal() }}
+                        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                         className="group flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm text-zinc-600 dark:text-zinc-300
                         hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-200
                         outline-none focus:outline-none border-0 cursor-pointer"
                     >
                         <span className="transition-all duration-200 group-hover:translate-x-1">
-                            Billing
+                            Theme
                         </span>
-                        <CreditCardIcon className="size-4 opacity-70 group-hover:opacity-100 transition-opacity duration-200" />
+                        {theme === 'dark' ? (
+                            <Moon className="size-4 opacity-70 group-hover:opacity-100 transition-opacity duration-200" />
+                        ) : (
+                            <Sun className="size-4 opacity-70 group-hover:opacity-100 transition-opacity duration-200" />
+                        )}
                     </DropdownMenuItem>
 
                     {/* Logout Item */}
                     <DropdownMenuItem
-                        // onClick={onLogout}
+                        onClick={logout}
+                        disabled={isLoggingOut}
                         className="group flex items-center justify-between gap-2 px-3 py-2 rounded-md text-sm text-zinc-600 dark:text-zinc-300
                         hover:bg-red-100 dark:hover:bg-red-900 hover:text-red-600
                         transition-colors duration-200 outline-none focus:outline-none border-0 cursor-pointer"
                     >
                         <span className="transition-all duration-200 group-hover:translate-x-1">
-                            Logout
+                            {isLoggingOut ? 'Logging out...' : 'Logout'}
                         </span>
                         <LogOutIcon className="size-4 opacity-70 group-hover:opacity-100 transition-opacity duration-200" />
                     </DropdownMenuItem>

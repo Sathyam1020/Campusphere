@@ -1,4 +1,4 @@
-import { Projects } from '@/components/student/project/YourProjects/Projects'
+import { Projects } from '@/components/student/project/Projects'
 
 const page = () => {
     return (
