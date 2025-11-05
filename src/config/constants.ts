@@ -4,6 +4,28 @@ import { FolderOpenIcon } from '@/components/ui/FolderOpenIcon';
 import { HouseIcon } from '@/components/ui/HouseIcon';
 import { ZapIcon } from '@/components/ui/ZapIcon';
 
+// API Configuration
+export const API_CONFIG = {
+  BASE_URL: process.env.NODE_ENV === 'production' 
+    ? process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+    : 'http://localhost:3000',
+  ENDPOINTS: {
+    // Auth endpoints
+    AUTH: {
+      STUDENT_SIGNIN: '/api/auth/student/signin',
+      STUDENT_SIGNUP: '/api/auth/student/signup',
+      SIGNOUT: '/api/auth/signout',
+    },
+    // Student endpoints
+    STUDENT: {
+      PROJECTS: '/api/student/project',
+    },
+    // General endpoints
+    ACCOUNT_TYPE: '/api/account-type',
+    COLLEGE: '/api/college',
+  }
+} as const;
+
 export const NavItems = [
   { name: "Home", href: "/home", icon: HouseIcon },
   { name: "Hackathon", href: "/home/hackathon", icon: ZapIcon },

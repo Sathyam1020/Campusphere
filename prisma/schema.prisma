@@ -167,8 +167,8 @@ model Project {
   title        String
   description  String
   githubUrl    String?
-  tags         String[]
   teamMembers  ProjectMember[]
+  skills       String[]
   addedById    String
   addedBy      Student   @relation(fields: [addedById], references: [id])
   createdAt    DateTime  @default(now())

@@ -5,6 +5,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { CreateProjectRequest, useCreateProject } from '@/services';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -12,10 +13,19 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-// Define the project schema
+// Define the project schema to match API expectations
 const projectFormSchema = z.object({
-    name: z.string().min(1, 'Project name is required'),
-    description: z.string().min(1, 'Project description is required'),
+    title: z.string()
+        .min(3, 'Project title must be at least 3 characters')
+        .max(100, 'Project title must be less than 100 characters'),
+    description: z.string()
+        .min(10, 'Project description must be at least 10 characters')
+        .max(2000, 'Project description must be less than 2000 characters'),
+    githubUrl: z.string()
+        .url('GitHub URL must be a valid URL')
+        .regex(/^https:\/\/github\.com\//, 'Must be a valid GitHub repository URL')
+        .optional()
+        .or(z.literal('')),
     skills: z.array(z.string()).min(1, 'At least one skill is required'),
 });
 
@@ -30,7 +40,19 @@ const availableSkills = [
     'Express.js',
     'MySQL',
     'MongoDB',
-    'PostgreSQL'
+    'PostgreSQL',
+    'TypeScript',
+    'JavaScript',
+    'Python',
+    'Java',
+    'C++',
+    'Angular',
+    'Vue.js',
+    'Django',
+    'Flask',
+    'Spring Boot',
+    'Docker',
+    'Kubernetes',
 ];
 
 interface ProjectFormProps {
@@ -44,14 +66,42 @@ const ProjectForm = ({
     onCancel,
     initialValues,
 }: ProjectFormProps) => {
-    const [isLoading, setIsLoading] = useState(false);
     const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+
+    // Create project mutation
+    const createProjectMutation = useCreateProject({
+        onSuccess: (data) => {
+            toast.success('Project created successfully!');
+            onSuccess?.(data.data?.project?.id);
+        },
+        onError: (error: any) => {
+            console.error('Error creating project:', error);
+
+            // Handle validation errors
+            if (error.status === 400 && error.details) {
+                error.details.forEach((detail: any) => {
+                    if (detail.field) {
+                        form.setError(detail.field as keyof ProjectFormData, {
+                            type: 'manual',
+                            message: detail.message,
+                        });
+                    }
+                });
+                toast.error('Please fix the validation errors');
+                return;
+            }
+
+            const errorMessage = error.message || 'Failed to create project';
+            toast.error(errorMessage);
+        },
+    });
 
     const form = useForm<ProjectFormData>({
         resolver: zodResolver(projectFormSchema),
         defaultValues: {
-            name: initialValues?.name ?? "",
+            title: initialValues?.title ?? "",
             description: initialValues?.description ?? "",
+            githubUrl: initialValues?.githubUrl ?? "",
             skills: initialValues?.skills ?? [],
         }
     });
@@ -77,65 +127,33 @@ const ProjectForm = ({
     };
 
     const onSubmit = async (values: ProjectFormData) => {
-        setIsLoading(true);
+        const projectData: CreateProjectRequest = {
+            title: values.title,
+            description: values.description,
+            githubUrl: values.githubUrl || undefined,
+            skills: values.skills,
+            teamMembers: [],
+        };
 
-        try {
-            // Create project object with required fields
-            const projectData = {
-                id: initialValues?.id ?? Date.now().toString(),
-                name: values.name,
-                description: values.description,
-                bio: values.description.length > 50 ? values.description.substring(0, 50) + '...' : values.description,
-                skills: values.skills,
-                status: 'active',
-                duration: 1800, // hardcoded 30 minutes
-                startedAt: new Date().toISOString(),
-                createdAt: new Date().toISOString(),
-            };
-
-            // Get existing projects from localStorage
-            const existingProjects = JSON.parse(localStorage.getItem('projects') || '[]');
-
-            if (initialValues?.id) {
-                // Update existing project
-                const updatedProjects = existingProjects.map((project: any) =>
-                    project.id === initialValues.id ? projectData : project
-                );
-                localStorage.setItem('projects', JSON.stringify(updatedProjects));
-                toast.success('Project updated successfully!');
-            } else {
-                // Add new project
-                existingProjects.push(projectData);
-                localStorage.setItem('projects', JSON.stringify(existingProjects));
-                toast.success('Project created successfully!');
-            }
-
-            // Dispatch custom event to notify other components
-            window.dispatchEvent(new CustomEvent('projectsUpdated'));
-
-            onSuccess?.(projectData.id);
-        } catch (error) {
-            toast.error('Something went wrong. Please try again.');
-        } finally {
-            setIsLoading(false);
-        }
+        createProjectMutation.mutate(projectData);
     };
 
     const isEdit = !!initialValues?.id;
+    const isLoading = createProjectMutation.isPending;
 
     return (
         <Form {...form}>
             <form className='space-y-4' onSubmit={form.handleSubmit(onSubmit)}>
                 <FormField
-                    name='name'
+                    name='title'
                     control={form.control}
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Project Name</FormLabel>
+                            <FormLabel>Project Title</FormLabel>
                             <FormControl>
                                 <Input
                                     {...field}
-                                    placeholder='Enter project name'
+                                    placeholder='Enter project title'
                                     disabled={isLoading}
                                 />
                             </FormControl>
@@ -156,6 +174,24 @@ const ProjectForm = ({
                                     placeholder='Enter project description'
                                     disabled={isLoading}
                                     rows={4}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    name='githubUrl'
+                    control={form.control}
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>GitHub URL (Optional)</FormLabel>
+                            <FormControl>
+                                <Input
+                                    {...field}
+                                    placeholder='https://github.com/username/repository'
+                                    disabled={isLoading}
                                 />
                             </FormControl>
                             <FormMessage />
@@ -230,7 +266,7 @@ const ProjectForm = ({
                         type='submit'
                     >
                         {isLoading ? (
-                            'Processing...'
+                            'Creating...'
                         ) : (
                             isEdit ? 'Update Project' : 'Create Project'
                         )}

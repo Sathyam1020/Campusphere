@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { useSignIn } from '@/services';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -21,6 +22,9 @@ type StudentSigninFormValues = z.infer<typeof studentSigninSchema>;
 const StudentSignInView = () => {
     const router = useRouter();
 
+    // Sign in mutation
+    const signInMutation = useSignIn();
+
     const form = useForm<StudentSigninFormValues>({
         resolver: zodResolver(studentSigninSchema),
         defaultValues: {
@@ -30,31 +34,18 @@ const StudentSignInView = () => {
     });
 
     const onSubmit = async (values: StudentSigninFormValues) => {
-        try {
-            const response = await fetch('/api/auth/student/signin', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(values),
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
+        signInMutation.mutate(values, {
+            onSuccess: () => {
                 toast.success('Login successful!');
-                // Redirect to student dashboard/home
                 router.push('/home');
-            } else {
-                toast.error(data.error || 'Invalid email or password');
-            }
-        } catch (error) {
-            toast.error('Something went wrong. Please try again.');
-            console.error('Signin error:', error);
-        }
+            },
+            onError: (error: any) => {
+                toast.error(error.message || 'Invalid email or password');
+            },
+        });
     };
 
-    const isPending = form.formState.isSubmitting;
+    const isPending = signInMutation.isPending;
 
     return (
         <div className='flex flex-col gap-6'>

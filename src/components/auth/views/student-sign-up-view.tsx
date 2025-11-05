@@ -6,10 +6,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useColleges, useSignUp } from '@/services';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import z from 'zod';
@@ -39,17 +39,19 @@ const studentSignupSchema = z.object({
 
 type StudentSignupFormValues = z.infer<typeof studentSignupSchema>;
 
-interface College {
-    id: string;
-    name: string;
-    location: string | null;
-    domain: string | null;
-}
-
 const StudentSignUpView = () => {
     const router = useRouter();
-    const [colleges, setColleges] = useState<College[]>([]);
-    const [loadingColleges, setLoadingColleges] = useState(true);
+
+    // Fetch colleges using React Query
+    const {
+        data: collegesResponse,
+        isLoading: loadingColleges
+    } = useColleges();
+
+    const colleges = collegesResponse?.data?.colleges || [];
+
+    // Sign up mutation
+    const signUpMutation = useSignUp();
 
     const form = useForm<StudentSignupFormValues>({
         resolver: zodResolver(studentSignupSchema),
@@ -67,59 +69,25 @@ const StudentSignUpView = () => {
         },
     });
 
-    useEffect(() => {
-        const fetchColleges = async () => {
-            try {
-                const response = await fetch('/api/college?limit=100');
-                const data = await response.json();
-                console.log('Fetched colleges:', data);
-                if (data.success) {
-                    setColleges(data.colleges);
-                } else {
-                    toast.error('Failed to load colleges');
-                }
-            } catch (error) {
-                toast.error('Failed to load colleges');
-                console.error('Error fetching colleges:', error);
-            } finally {
-                setLoadingColleges(false);
-            }
+    const onSubmit = async (values: StudentSignupFormValues) => {
+        const payload = {
+            ...values,
+            interests: values.interests ? values.interests.split(',').map(item => item.trim()) : [],
+            hobbies: values.hobbies ? values.hobbies.split(',').map(item => item.trim()) : [],
         };
 
-        fetchColleges();
-    }, []);
-
-    const onSubmit = async (values: StudentSignupFormValues) => {
-        try {
-            const payload = {
-                ...values,
-                interests: values.interests ? values.interests.split(',').map(item => item.trim()) : [],
-                hobbies: values.hobbies ? values.hobbies.split(',').map(item => item.trim()) : [],
-            };
-
-            const response = await fetch('/api/auth/student/signup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload),
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
+        signUpMutation.mutate(payload, {
+            onSuccess: () => {
                 toast.success('Account created successfully!');
                 router.push('/sign-in');
-            } else {
-                toast.error(data.error || 'Something went wrong. Try again.');
-            }
-        } catch (error) {
-            toast.error('Something went wrong. Try again.');
-            console.error('Signup error:', error);
-        }
+            },
+            onError: (error: any) => {
+                toast.error(error.message || 'Something went wrong. Try again.');
+            },
+        });
     };
 
-    const isPending = form.formState.isSubmitting;
+    const isPending = signUpMutation.isPending;
 
     return (
         <div className='flex flex-col gap-6'>

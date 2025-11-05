@@ -1,4 +1,5 @@
 import RouteGuard from '@/components/auth/RouteGuard';
+import { QueryProvider } from '@/components/providers/QueryProvider';
 import { ThemeProvider } from "@/components/theme-provider";
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
@@ -31,8 +32,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <RouteGuard />
-          {children}
+          <QueryProvider>
+            <RouteGuard />
+            {children}
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

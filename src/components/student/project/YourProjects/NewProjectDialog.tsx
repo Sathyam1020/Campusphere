@@ -5,11 +5,13 @@ import ProjectForm from './ProjectForm';
 interface NewProjectDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    onProjectCreated?: () => void;
 }
 
 const NewProjectDialog = ({
     open,
     onOpenChange,
+    onProjectCreated,
 }: NewProjectDialogProps) => {
     return (
         <ResponsiveDialog
@@ -21,6 +23,9 @@ const NewProjectDialog = ({
             <ProjectForm
                 onSuccess={() => {
                     onOpenChange(false);
+                    if (onProjectCreated) {
+                        onProjectCreated();
+                    }
                 }}
                 onCancel={() => {
                     onOpenChange(false);
