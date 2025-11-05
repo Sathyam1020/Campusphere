@@ -1,0 +1,238 @@
+// Minimal Prisma schema for local/dummy usage (SQLite)
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountType {
+  COLLEGE
+  STUDENT
+  TEACHER
+  RECRUITER
+}
+
+model User {
+  id            String       @id
+  name          String
+  email         String       @unique
+  emailVerified Boolean      @default(false)
+  accountType   AccountType
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @default(now()) @updatedAt
+
+  @@map("user")
+}
+
+model College {
+  id             String    @id @default(cuid())
+  name           String
+  location       String?
+  logo           String?
+  domain         String? 
+  students       Student[]
+  teachers       Teacher[]
+  admins         CollegeAdmin[]
+  recruiters     Recruiter[]
+  posts          Post[]
+  hackathons     Hackathon[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+
+model Student {
+  id              String   @id @default(cuid())
+  name            String
+  email           String   @unique
+  password        String
+  profileImage    String?
+  bio             String?
+  cgpa            Float?   @default(0)
+  githubUsername  String?
+  linkedin        String?
+  interests       String[] // ["Web Dev", "ML", "Design"]
+  hobbies         String[]
+  skills          SkillOnStudent[]
+  projects        Project[]
+  projectMemberships ProjectMember[]
+  posts           Post[]
+  replies         Reply[]
+  hackathonJoins  HackathonJoin[]
+  certificates    Certificate[]
+  studentPerformances StudentPerformance[]
+  shortlists      Shortlist[]
+  collegeId       String
+  college         College   @relation(fields: [collegeId], references: [id])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+
+model Teacher {
+  id             String   @id @default(cuid())
+  name           String
+  email          String   @unique
+  password       String
+  department     String?
+  collegeId      String
+  college        College  @relation(fields: [collegeId], references: [id])
+  students       StudentPerformance[]
+  hackathons     Hackathon[]
+  certificates   Certificate[]
+  verifiedSkills SkillOnStudent[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+
+model CollegeAdmin {
+  id         String   @id @default(cuid())
+  name       String
+  email      String   @unique
+  password   String
+  collegeId  String
+  college    College  @relation(fields: [collegeId], references: [id])
+  createdAt  DateTime @default(now())
+}
+
+model Recruiter {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  company       String
+  password      String
+  verified      Boolean  @default(false)
+  collegeId     String
+  college       College  @relation(fields: [collegeId], references: [id])
+  shortlisted   Shortlist[]
+  createdAt     DateTime @default(now())
+}
+
+model Post {
+  id            String   @id @default(cuid())
+  title         String
+  content       String
+  type          String   // "Project" | "Help" | "Announcement"
+  tags          String[]
+  authorId      String
+  author        Student  @relation(fields: [authorId], references: [id])
+  replies       Reply[]
+  collegeId     String?
+  college       College? @relation(fields: [collegeId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Reply {
+  id         String   @id @default(cuid())
+  content    String
+  authorId   String
+  author     Student  @relation(fields: [authorId], references: [id])
+  postId     String
+  post       Post     @relation(fields: [postId], references: [id])
+  createdAt  DateTime @default(now())
+}
+
+model Hackathon {
+  id             String   @id @default(cuid())
+  title          String
+  description    String
+  hostedById     String   // Teacher or CollegeAdmin
+  hostedBy       Teacher  @relation(fields: [hostedById], references: [id])
+  collegeId      String?
+  college        College? @relation(fields: [collegeId], references: [id])
+  isGlobal       Boolean  @default(false) // true = open to all colleges
+  date           DateTime
+  participants   HackathonJoin[]
+  certificates   Certificate[]
+  createdAt      DateTime @default(now())
+}
+
+model HackathonJoin {
+  id            String   @id @default(cuid())
+  studentId     String
+  student       Student  @relation(fields: [studentId], references: [id])
+  hackathonId   String
+  hackathon     Hackathon @relation(fields: [hackathonId], references: [id])
+  qrCodeUrl     String?   // generated on join
+  joinedAt      DateTime  @default(now())
+}
+
+model Project {
+  id           String   @id @default(cuid())
+  title        String
+  description  String
+  githubUrl    String?
+  teamMembers  ProjectMember[]
+  skills       String[]
+  addedById    String
+  addedBy      Student   @relation(fields: [addedById], references: [id])
+  createdAt    DateTime  @default(now())
+}
+
+model Skill {
+  id       String   @id @default(cuid())
+  name     String   @unique
+  students SkillOnStudent[]
+}
+
+model SkillOnStudent {
+  id          String   @id @default(cuid())
+  studentId   String
+  skillId     String
+  student     Student  @relation(fields: [studentId], references: [id])
+  skill       Skill    @relation(fields: [skillId], references: [id])
+  verifiedById String? 
+  verifiedBy  Teacher? @relation(fields: [verifiedById], references: [id])
+  verified    Boolean  @default(false)
+  addedAt     DateTime @default(now())
+}
+
+model StudentPerformance {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id])
+  teacherId   String
+  teacher     Teacher  @relation(fields: [teacherId], references: [id])
+  subject     String
+  marks       Float
+  attendance  Float?
+  createdAt   DateTime @default(now())
+}
+
+model Certificate {
+  id          String   @id @default(cuid())
+  title       String
+  issuedById  String
+  issuedBy    Teacher  @relation(fields: [issuedById], references: [id])
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id])
+  hackathonId String?
+  hackathon   Hackathon? @relation(fields: [hackathonId], references: [id])
+  qrCodeUrl   String?
+  createdAt   DateTime @default(now())
+}
+
+model Shortlist {
+  id           String   @id @default(cuid())
+  recruiterId  String
+  recruiter    Recruiter @relation(fields: [recruiterId], references: [id])
+  studentId    String
+  student      Student   @relation(fields: [studentId], references: [id])
+  createdAt    DateTime  @default(now())
+}
+
+// explicit join model for project team members
+model ProjectMember {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id])
+  studentId  String
+  student    Student  @relation(fields: [studentId], references: [id])
+  role       String?
+  addedAt    DateTime @default(now())
+}
