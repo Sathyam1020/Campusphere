@@ -6,24 +6,21 @@ import { ZapIcon } from '@/components/ui/ZapIcon';
 
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: process.env.NODE_ENV === 'production' 
-    ? process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-    : 'http://localhost:3000',
+  BASE_URL:
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    'http://localhost:3000', // fallback only for local dev
   ENDPOINTS: {
-    // Auth endpoints
     AUTH: {
       STUDENT_SIGNIN: '/api/auth/student/signin',
       STUDENT_SIGNUP: '/api/auth/student/signup',
       SIGNOUT: '/api/auth/signout',
     },
-    // Student endpoints
     STUDENT: {
       PROJECTS: '/api/student/project',
     },
-    // General endpoints
     ACCOUNT_TYPE: '/api/account-type',
     COLLEGE: '/api/college',
-  }
+  },
 } as const;
 
 export const NavItems = [
