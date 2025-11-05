@@ -7,7 +7,7 @@ import { ZapIcon } from '@/components/ui/ZapIcon';
 // API Configuration
 export const API_CONFIG = {
   BASE_URL: process.env.NODE_ENV === 'production' 
-    ? process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+    ? process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
     : 'http://localhost:3000',
   ENDPOINTS: {
     // Auth endpoints
