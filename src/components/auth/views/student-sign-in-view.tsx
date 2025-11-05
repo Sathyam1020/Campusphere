@@ -8,6 +8,7 @@ import { useSignIn } from '@/services';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import z from 'zod';
@@ -21,6 +22,12 @@ type StudentSigninFormValues = z.infer<typeof studentSigninSchema>;
 
 const StudentSignInView = () => {
     const router = useRouter();
+
+    // Put this anywhere client-side (e.g., in a useEffect)
+    useEffect(() => {
+        console.log("Base URL:", process.env.NEXT_PUBLIC_BASE_URL);
+    }, []);
+
 
     // Sign in mutation
     const signInMutation = useSignIn();
