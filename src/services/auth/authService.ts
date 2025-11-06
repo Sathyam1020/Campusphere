@@ -32,6 +32,12 @@ export class AuthService {
    * Sign out
    */
   async signOut(): Promise<ApiResponse> {
+    // Clear localStorage token
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth-token');
+      console.log('💾 Cleared localStorage token');
+    }
+    
     return apiClient.post<ApiResponse>(
       API_CONFIG.ENDPOINTS.AUTH.SIGNOUT
     );

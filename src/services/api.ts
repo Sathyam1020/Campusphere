@@ -21,14 +21,20 @@ export class ApiClient {
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     
+    // Get token from localStorage as fallback for cookie issues
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null;
+    
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
         ...options.headers,
       },
       credentials: 'include', // Include cookies for authentication
       ...options,
     };
+
+    console.log('🌐 API Request:', { url, hasToken: !!token });
 
     try {
       const response = await fetch(url, config);
