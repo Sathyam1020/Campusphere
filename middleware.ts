@@ -7,6 +7,10 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   console.log(`🔍 Middleware: ${pathname}, Token: ${token ? 'EXISTS' : 'NONE'}`);
+  
+  if (token) {
+    console.log(`🍪 Raw token: ${token.substring(0, 50)}...`);
+  }
 
   // Define auth-related pages that logged-in users shouldn't access
   const authPages = ['/', '/sign-in', '/sign-up'];
@@ -100,7 +104,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
 
   } catch (error) {
-    console.error('❌ Invalid token:', error);
+    console.error('❌ Token verification failed:', error);
+    console.error('❌ Token that failed:', token?.substring(0, 50) + '...');
+    console.error('❌ Error details:', error instanceof Error ? error.message : 'Unknown error');
 
     // Clear invalid token and redirect
     if (pathname.startsWith('/api/')) {
@@ -109,11 +115,13 @@ export function middleware(request: NextRequest) {
         { status: 401 }
       );
       response.cookies.delete('auth-token');
+      console.log('🗑️ Deleted invalid token cookie from API route');
       return response;
     }
 
     const response = NextResponse.redirect(new URL('/sign-in', request.url));
     response.cookies.delete('auth-token');
+    console.log('🗑️ Deleted invalid token cookie and redirecting to sign-in');
     return response;
   }
 }

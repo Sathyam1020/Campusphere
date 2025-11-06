@@ -41,12 +41,22 @@ const StudentSignInView = () => {
     });
 
     const onSubmit = async (values: StudentSigninFormValues) => {
+        console.log('🚀 Starting login process...');
         signInMutation.mutate(values, {
-            onSuccess: () => {
+            onSuccess: (data) => {
+                console.log('✅ Login API success:', data);
+                console.log('🍪 Checking cookies after login:', document.cookie);
+
                 toast.success('Login successful!');
-                router.push('/home');
+
+                // Add a small delay before redirect to see if cookie gets cleared
+                setTimeout(() => {
+                    console.log('🍪 Checking cookies before redirect:', document.cookie);
+                    router.push('/home');
+                }, 100);
             },
             onError: (error: any) => {
+                console.error('❌ Login error:', error);
                 toast.error(error.message || 'Invalid email or password');
             },
         });

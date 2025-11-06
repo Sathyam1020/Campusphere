@@ -132,6 +132,13 @@ export async function POST(req: NextRequest) {
       path: '/',
     });
 
+    console.log('🍪 Cookie set:', {
+      token: token.substring(0, 20) + '...',
+      secure: process.env.NODE_ENV === 'production',
+      NODE_ENV: process.env.NODE_ENV,
+      cookiesLength: response.cookies.getAll().length
+    });
+
     return response;
   } catch (error) {
     console.error('Student signin error:', error);

@@ -15,18 +15,30 @@ export interface TokenPayload {
 }
 
 export function generateToken(payload: TokenPayload): string {
-  return jwt.sign(payload, JWT_SECRET, {
+  console.log('🔨 Generating token for:', payload.email, 'type:', payload.type);
+  console.log('🔨 JWT Secret exists:', !!JWT_SECRET);
+  
+  const token = jwt.sign(payload, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
     issuer: 'your-app-name',
   });
+  
+  console.log('✅ Token generated successfully:', token.substring(0, 50) + '...');
+  return token;
 }
 
 export function verifyToken(token: string): TokenPayload {
   try {
-    return jwt.verify(token, JWT_SECRET, {
+    console.log('🔐 Verifying token:', token.substring(0, 50) + '...');
+    const payload = jwt.verify(token, JWT_SECRET, {
       issuer: 'your-app-name',
     }) as TokenPayload;
+    console.log('✅ Token verification successful for:', payload.email);
+    return payload;
   } catch (error) {
+    console.error('❌ Token verification failed:', error);
+    console.error('❌ JWT Secret exists:', !!JWT_SECRET);
+    console.error('❌ Token preview:', token.substring(0, 100));
     throw new Error('Invalid or expired token');
   }
 }
