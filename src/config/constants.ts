@@ -6,22 +6,35 @@ import { ZapIcon } from '@/components/ui/ZapIcon';
 
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL:
-    process.env.NEXT_PUBLIC_BASE_URL ||
-    'http://localhost:3000', // fallback only for local dev
+  BASE_URL: process.env.NODE_ENV === 'production' 
+    ? (process.env.NEXT_PUBLIC_BASE_URL || 'https://campusphere-git-demo-sathyam1020s-projects.vercel.app')
+    : 'http://localhost:3000',
   ENDPOINTS: {
+    // Auth endpoints
     AUTH: {
       STUDENT_SIGNIN: '/api/auth/student/signin',
       STUDENT_SIGNUP: '/api/auth/student/signup',
       SIGNOUT: '/api/auth/signout',
     },
+    // Student endpoints
     STUDENT: {
       PROJECTS: '/api/student/project',
     },
+    // General endpoints
     ACCOUNT_TYPE: '/api/account-type',
     COLLEGE: '/api/college',
-  },
+  }
 } as const;
+
+// Debug logging for deployment issues
+if (typeof window !== 'undefined') {
+  console.log('🚀 API Config Debug:', {
+    NODE_ENV: process.env.NODE_ENV,
+    NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
+    BASE_URL: API_CONFIG.BASE_URL,
+    isProduction: process.env.NODE_ENV === 'production'
+  });
+}
 
 export const NavItems = [
   { name: "Home", href: "/home", icon: HouseIcon },

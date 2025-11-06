@@ -7,6 +7,12 @@ export class ApiClient {
 
   constructor() {
     this.baseURL = API_CONFIG.BASE_URL;
+    // Debug logging only in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 API Client initialized with baseURL:', this.baseURL);
+      console.log('🔍 Environment:', process.env.NODE_ENV);
+      console.log('🔍 NEXT_PUBLIC_BASE_URL:', process.env.NEXT_PUBLIC_BASE_URL);
+    }
   }
 
   private async request<T>(
