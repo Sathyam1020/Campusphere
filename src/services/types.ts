@@ -115,6 +115,7 @@ export interface AuthResponse {
   success: boolean;
   message: string;
   student: Student;
+  token?: string; // TEMPORARY: For debugging cookie issues
 }
 
 // Query keys for React Query

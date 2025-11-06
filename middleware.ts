@@ -12,6 +12,14 @@ export function middleware(request: NextRequest) {
     console.log(`🍪 Raw token: ${token.substring(0, 50)}...`);
   }
 
+  // TEMPORARY: Also check for Authorization header as fallback
+  const authHeader = request.headers.get('authorization');
+  const fallbackToken = authHeader?.replace('Bearer ', '');
+  
+  console.log(`🔍 Fallback token from header: ${fallbackToken ? 'EXISTS' : 'NONE'}`);
+
+  const finalToken = token || fallbackToken;
+
   // Define auth-related pages that logged-in users shouldn't access
   const authPages = ['/', '/sign-in', '/sign-up'];
   const isAuthPage = authPages.includes(pathname);
@@ -28,7 +36,7 @@ export function middleware(request: NextRequest) {
   const isAuthApiRoute = authApiRoutes.some(route => pathname.startsWith(route));
 
   // If no token (user not logged in)
-  if (!token) {
+  if (!finalToken) {
     console.log(`🔓 No token - allowing access to: ${pathname}`);
     
     // Allow auth pages and auth API routes
@@ -50,7 +58,7 @@ export function middleware(request: NextRequest) {
 
   // If token exists (user is logged in)
   try {
-    const payload = verifyToken(token);
+    const payload = verifyToken(finalToken);
     console.log(`🔐 Valid token for user: ${payload.email} (${payload.type})`);
 
     // 🚫 REDIRECT LOGGED-IN USERS FROM AUTH PAGES
@@ -105,7 +113,7 @@ export function middleware(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Token verification failed:', error);
-    console.error('❌ Token that failed:', token?.substring(0, 50) + '...');
+    console.error('❌ Token that failed:', finalToken?.substring(0, 50) + '...');
     console.error('❌ Error details:', error instanceof Error ? error.message : 'Unknown error');
 
     // Clear invalid token and redirect

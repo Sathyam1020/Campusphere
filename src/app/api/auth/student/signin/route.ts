@@ -106,6 +106,7 @@ export async function POST(req: NextRequest) {
       {
         success: true,
         message: 'Login successful',
+        token: token, // TEMPORARY: Include token in response for testing
         student: {
           id: student.id,
           email: student.email,
@@ -123,10 +124,19 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
 
-    // Set secure HTTP-only cookie
+    // For debugging: Try setting a simple test cookie first
+    response.cookies.set('test-cookie', 'test-value', {
+      httpOnly: false, // Make it accessible to JS for testing
+      secure: false,   // Disable secure for testing
+      sameSite: 'lax',
+      maxAge: 60 * 60, // 1 hour
+      path: '/',
+    });
+
+    // Set secure HTTP-only cookie with relaxed settings for production
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Temporarily disable for testing
       sameSite: 'lax' as const,
       maxAge: 7 * 24 * 60 * 60, // 7 days
       path: '/',
@@ -134,16 +144,17 @@ export async function POST(req: NextRequest) {
 
     response.cookies.set('auth-token', token, cookieOptions);
 
-    // Alternative method for Vercel - set cookie header manually
-    const cookieValue = `auth-token=${token}; Path=/; HttpOnly; ${process.env.NODE_ENV === 'production' ? 'Secure;' : ''} SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`;
+    // Alternative method for Vercel - set cookie header manually with relaxed settings
+    const cookieValue = `auth-token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`;
     response.headers.set('Set-Cookie', cookieValue);
 
-    console.log('🍪 Cookie set with options:', {
+    console.log('🍪 Cookie set with relaxed options:', {
       token: token.substring(0, 20) + '...',
       cookieOptions,
       cookieValue: cookieValue.substring(0, 100) + '...',
       NODE_ENV: process.env.NODE_ENV,
       cookiesLength: response.cookies.getAll().length,
+      allCookies: response.cookies.getAll(),
       url: req.url
     });
 
