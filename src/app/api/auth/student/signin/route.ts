@@ -124,19 +124,27 @@ export async function POST(req: NextRequest) {
     );
 
     // Set secure HTTP-only cookie
-    response.cookies.set('auth-token', token, {
+    const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'lax' as const,
       maxAge: 7 * 24 * 60 * 60, // 7 days
       path: '/',
-    });
+    };
 
-    console.log('🍪 Cookie set:', {
+    response.cookies.set('auth-token', token, cookieOptions);
+
+    // Alternative method for Vercel - set cookie header manually
+    const cookieValue = `auth-token=${token}; Path=/; HttpOnly; ${process.env.NODE_ENV === 'production' ? 'Secure;' : ''} SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`;
+    response.headers.set('Set-Cookie', cookieValue);
+
+    console.log('🍪 Cookie set with options:', {
       token: token.substring(0, 20) + '...',
-      secure: process.env.NODE_ENV === 'production',
+      cookieOptions,
+      cookieValue: cookieValue.substring(0, 100) + '...',
       NODE_ENV: process.env.NODE_ENV,
-      cookiesLength: response.cookies.getAll().length
+      cookiesLength: response.cookies.getAll().length,
+      url: req.url
     });
 
     return response;
