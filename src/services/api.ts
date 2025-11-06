@@ -21,20 +21,30 @@ export class ApiClient {
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     
+    // Don't send Authorization header for auth endpoints (signin, signup)
+    const isAuthEndpoint = endpoint.includes('/auth/') && 
+                          (endpoint.includes('/signin') || endpoint.includes('/signup'));
+    
     // Get token from localStorage as fallback for cookie issues
     const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null;
     
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }),
+        // Only add Authorization header if it's not an auth endpoint and we have a token
+        ...(!isAuthEndpoint && token && { 'Authorization': `Bearer ${token}` }),
         ...options.headers,
       },
       credentials: 'include', // Include cookies for authentication
       ...options,
     };
 
-    console.log('🌐 API Request:', { url, hasToken: !!token });
+    console.log('🌐 API Request:', { 
+      url, 
+      hasToken: !!token, 
+      isAuthEndpoint,
+      willSendAuth: !isAuthEndpoint && !!token 
+    });
 
     try {
       const response = await fetch(url, config);

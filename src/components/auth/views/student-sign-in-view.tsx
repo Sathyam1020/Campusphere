@@ -46,25 +46,25 @@ const StudentSignInView = () => {
             onSuccess: (data) => {
                 console.log('✅ Login API success:', data);
                 console.log('🍪 All cookies after login:', document.cookie);
-                
+
                 // TEMPORARY: Store token in localStorage as fallback
                 if (data.token) {
                     localStorage.setItem('auth-token', data.token);
                     console.log('💾 Token stored in localStorage as fallback');
                 }
-                
+
                 // Check specifically for our cookies
                 const allCookies = document.cookie.split(';').reduce((acc, cookie) => {
                     const [name, value] = cookie.trim().split('=');
                     acc[name] = value;
                     return acc;
                 }, {} as Record<string, string>);
-                
+
                 console.log('🍪 Parsed cookies:', allCookies);
                 console.log('🍪 Test cookie present:', !!allCookies['test-cookie']);
                 console.log('🍪 Auth token present:', !!allCookies['auth-token']);
                 console.log('💾 LocalStorage token present:', !!localStorage.getItem('auth-token'));
-                
+
                 toast.success('Login successful!');
 
                 // Add a small delay before redirect to see if cookie gets cleared

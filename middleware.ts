@@ -31,22 +31,27 @@ export function middleware(request: NextRequest) {
     '/api/auth/college/signin', 
     '/api/auth/student/signup',
     '/api/auth/student/signin',
-    '/api/colleges',
+    '/api/college', // College list for signup
     '/api/test-auth'
   ];
   const isAuthApiRoute = authApiRoutes.some(route => pathname.startsWith(route));
 
+  console.log(`🔍 Route check: isAuthPage=${isAuthPage}, isAuthApiRoute=${isAuthApiRoute}, pathname=${pathname}`);
+
   // If no token (user not logged in)
   if (!token) {
-    console.log(`🔓 No token - allowing access to: ${pathname}`);
+    console.log(`🔓 No token - checking access for: ${pathname}`);
+    console.log(`🔓 isAuthPage: ${isAuthPage}, isAuthApiRoute: ${isAuthApiRoute}`);
     
     // Allow auth pages and auth API routes
     if (isAuthPage || isAuthApiRoute) {
+      console.log(`✅ Allowing access to: ${pathname}`);
       return NextResponse.next();
     }
 
     // Block all other API routes
     if (pathname.startsWith('/api/')) {
+      console.log(`❌ Blocking API route: ${pathname}`);
       return NextResponse.json(
         { error: 'Authentication required', code: 'UNAUTHORIZED' },
         { status: 401 }
@@ -54,6 +59,7 @@ export function middleware(request: NextRequest) {
     }
 
     // Redirect to sign-in for protected pages
+    console.log(`🔄 Redirecting to sign-in from: ${pathname}`);
     return NextResponse.redirect(new URL('/sign-in', request.url));
   }
 
