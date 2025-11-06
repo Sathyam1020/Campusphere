@@ -58,9 +58,10 @@ export function middleware(request: NextRequest) {
       );
     }
 
-    // Redirect to sign-in for protected pages
-    console.log(`🔄 Redirecting to sign-in from: ${pathname}`);
-    return NextResponse.redirect(new URL('/sign-in', request.url));
+    // TEMPORARY: Allow page navigation for client-side auth handling
+    // For now, let client-side RouteGuard handle page redirects
+    console.log(`⚠️ Allowing page access for client-side auth: ${pathname}`);
+    return NextResponse.next();
   }
 
   // If token exists (user is logged in)

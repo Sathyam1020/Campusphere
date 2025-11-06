@@ -17,11 +17,15 @@ export interface AccountTypeError {
  */
 export async function getAccountType(): Promise<AccountTypeResponse | AccountTypeError> {
   try {
+    // Get token from localStorage as fallback for cookie issues
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null;
+    
     const response = await fetch('/api/account-type', {
       method: 'GET',
       credentials: 'include', // Include cookies
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
       },
     });
 
